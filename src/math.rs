@@ -42,7 +42,7 @@ use partial_min_max::{max, min};
 
 /// REMEMBER: THE ORDER IS X Y WIDTH HEIGHT
 
-// Calculate the AABB of given rectangles
+/// Calculate the AABB of given rectangles
 pub fn aabb(rects: impl Iterator<Item = F4>) -> F4 {
 	let (p0, p1) = rects.fold(
 		(
@@ -60,31 +60,64 @@ pub fn aabb(rects: impl Iterator<Item = F4>) -> F4 {
 	aabb_p01(p0, p1)
 }
 
-// Clamp src to dst
-pub fn aabb_clamp(src: F4, dst: F4) -> F4 {
-	let sr1 = src.p1();
-	let ds1 = dst.p1();
+/// If rectangle contains a point
+pub fn aabb_contains(r0: F4, point: F2) -> bool {
+	let r1 = r0.p1();
+	point[0] >= r0[0] && point[1] >= r0[1] && point[0] < r1[0] && point[1] < r1[1]
+}
+
+/// Clamp source to destination
+pub fn aabb_clamp(s0: F4, d0: F4) -> F4 {
+	let s1 = s0.p1();
+	let d1 = d0.p1();
 	aabb_p01(
-		F2!(max(src[0], dst[0]), max(src[1], dst[1])),
-		F2!(min(sr1[0], ds1[0]), min(sr1[1], ds1[1])),
+		F2!(max(s0[0], d0[0]), max(s0[1], d0[1])),
+		F2!(min(s1[0], d1[0]), min(s1[1], d1[1])),
 	)
 }
 
-// Create bounding box from two corners
+/// Create bounding box from two corners
 pub fn aabb_p01(p0: F2, p1: F2) -> F4 {
 	let size = p1 - p0;
 	F4!(p0[0], p0[1], size[0], size[1])
 }
 
-pub fn aabb_intersect(lhs: F4, rhs: F4) -> bool {
-	lhs[0] < rhs[2] && lhs[1] < rhs[3] && rhs[0] < lhs[2] && rhs[1] < lhs[3]
+/// If two rectangles intersect with each other
+pub fn aabb_intersect(l0: F4, r0: F4) -> bool {
+	let (l1, r1) = (l0.p1(), r0.p1());
+	l0[0] < r1[0] && l0[1] < r1[1] && r0[0] < l1[0] && r0[1] < l1[1]
 }
 
-pub fn aabb_touch() -> bool {
-	unimplemented!()
+// pub fn aabb_touch() -> bool {
+// 	unimplemented!()
+// }
+
+/// if they can swap
+/// aabb_share_edge(x,y) == aabb_share_edge(y,x)
+pub fn aabb_share_edge(l0: F4, r0: F4) -> bool {
+	let (l1, r1) = (l0.p1(), r0.p1());
+	let l = [[l0[0], l1[0]], [l0[1], l1[1]]];
+	let r = [[r0[0], r1[0]], [r0[1], r1[1]]];
+	let mut aligned_edges = 0u8;
+	for axis in 0..2 {
+		for side_l in 0..2 {
+			for side_r in 0..2 {
+				if l[axis][side_l] == r[axis][side_r] {
+					aligned_edges += 1;
+				}
+			}
+		}
+	}
+	match aligned_edges {
+		0 | 1 | 2 => false,
+		3 => true,
+		4 => panic!("The two pieces overlap!"),
+		_ => panic!("Wat"),
+	}
 }
 
-// if they can swap
-pub fn aabb_share_edge() {
-	unimplemented!()
+/// Is this a valid piece?
+pub fn is_valid_shape(rect: F4) -> bool {
+	let (w, h) = (rect[2], rect[3]);
+	w == h || w == h * F!(2) || w * F!(2) == h
 }
