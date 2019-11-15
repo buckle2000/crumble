@@ -128,11 +128,7 @@ impl Board {
 			let dst = to.flip().check()?;
 			let to_add = vec![from.flip().check()?, dst.clone()];
 			self.change(&vec![from, to], &to_add);
-			if self
-				.capture_check()
-				.iter()
-				.any(|captured| captured.from == dst)
-			{
+			if self.capture().iter().any(|captured| *captured == dst) {
 				None
 			} else {
 				Some(dst)
@@ -142,26 +138,50 @@ impl Board {
 		}
 	}
 	/// Capture pieces
-	fn capture_check(&mut self) -> Vec<CapturedPiece> {
-		unimplemented!()
+	/// returned captured pieces
+	fn capture(&mut self) -> Vec<Rc<Piece>> {
+		use petgraph::algo::{has_path_connecting, DfsSpace};
+		use petgraph::graph::NodeIndex;
+		use petgraph::{Graph, Undirected};
+		let len = self.pieces.len();
+		let mut graph = Graph::<usize, (), Undirected>::with_capacity(len, len * 8);
+		let nodes: Vec<NodeIndex> = (0..len).map(|x| graph.add_node(x)).collect();
+		let node_wall = graph.add_node(std::usize::MAX);
+		let aabb_wall = F4!(F!(0), F!(0), F!(1), F!(1));
+		for i in 0..len {
+			if aabb_aligned_edges(aabb_wall, self.pieces[i].aabb) >= 1 {
+				graph.add_edge(nodes[i], node_wall, ());
+			}
+			for j in i + 1..len {
+				if aabb_touch(self.pieces[i].aabb, self.pieces[j].aabb) {
+					graph.add_edge(nodes[i], nodes[j], ());
+				}
+			}
+		}
+		let mut dfs = DfsSpace::default();
+		let captured: Vec<Rc<Piece>> = (0..len)
+			.filter(|i| !has_path_connecting(&graph, nodes[*i], node_wall, Some(&mut dfs))) // find dead pieces
+			.map(|i| self.pieces[i].clone())
+			.collect();
+		let replacements = captured
+			.iter()
+			.map(|piece| piece.flip().check().unwrap())
+			.collect();
+		self.change(&captured, &replacements);
+		captured
 	}
-}
-
-struct CapturedPiece {
-	from: Rc<Piece>,
-	to: Rc<Piece>,
 }
 
 fn try_split(p: &Piece, path: F4) -> Option<Vec<Rc<Piece>>> {
 	let cut = aabb_clamp(path, p.aabb);
 	Some(vec![
 		Piece {
-			aabb: aabb_p01(p.p0(), cut.p1()),
+			aabb: aabb_p0p1(p.p0(), cut.p1()),
 			..*p
 		}
 		.check()?,
 		Piece {
-			aabb: aabb_p01(p.p1(), cut.p0()),
+			aabb: aabb_p0p1(p.p1(), cut.p0()),
 			..*p
 		}
 		.check()?,
