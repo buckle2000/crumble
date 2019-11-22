@@ -1,0 +1,21 @@
+[package]
+name = "crumble-wasm"
+version = "0.1.0"
+authors = ["buckle2000 <buckle2000@zoho.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+crumble = { path = "../crumble" }
+js-sys = "0.3.31"
+serde = "1.0.102"
+serde_derive = "1.0.102"
+num-traits = "0.2.9"
+
+[dependencies.wasm-bindgen]
+version = "0.2.54"
+features = ["serde-serialize"]

@@ -1,7 +1,8 @@
 mod math;
 use math::*;
+pub use math::{F, F2, F4};
 
-type Color = bool;
+pub type Color = bool;
 pub const BLACK: Color = false;
 pub const WHITE: Color = true;
 
@@ -53,7 +54,7 @@ use std::rc::Rc;
 
 #[derive(Default, Clone)]
 pub struct Board {
-	pieces: Vec<Rc<Piece>>,
+	pub pieces: Vec<Rc<Piece>>,
 	// TODO what if we clone a board? would the pieces be cloned or merely referenced?
 	// ideally, the pieces should be cloned as well
 }
@@ -89,7 +90,7 @@ impl Board {
 			.find(|piece| aabb_contains(piece.aabb, point))
 			.cloned()
 	}
-	pub fn change(&mut self, to_remove: &Vec<Rc<Piece>>, to_add: &Vec<Rc<Piece>>) {
+	fn change(&mut self, to_remove: &Vec<Rc<Piece>>, to_add: &Vec<Rc<Piece>>) {
 		self.pieces.retain(|x| !to_remove.contains(x));
 		self.pieces.extend(to_add.to_owned());
 	}

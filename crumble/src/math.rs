@@ -93,6 +93,7 @@ pub fn aabb_p0p1(p0: F2, p1: F2) -> F4 {
 }
 
 /// If two rectangles intersect with each other
+/// touching rectangles don't count as intersecting
 pub fn aabb_intersect(l0: F4, r0: F4) -> bool {
 	let (l1, r1) = (l0.p1(), r0.p1());
 	l0[0] < r1[0] && l0[1] < r1[1] && r0[0] < l1[0] && r0[1] < l1[1]
