@@ -12,14 +12,14 @@ pub struct Piece {
 	pub color: Color,
 }
 impl Piece {
-	pub fn check(self) -> Option<Rc<Self>> {
+	fn check(self) -> Option<Rc<Self>> {
 		if is_valid_shape(*self) {
 			Some(Rc::new(self))
 		} else {
 			None
 		}
 	}
-	pub fn flip(&self) -> Self {
+	fn flip(&self) -> Self {
 		Self {
 			color: !self.color,
 			..self.clone()
