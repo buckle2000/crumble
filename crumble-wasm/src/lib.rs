@@ -41,8 +41,15 @@ impl PieceRO {
 pub struct BoardW(Board);
 #[wasm_bindgen]
 impl BoardW {
+	pub fn clone(&self) -> Self {
+		Clone::clone(self)
+	}
 	pub fn new_starting() -> Self {
 		Self(Board::new_starting())
+	}
+	pub fn pieces(&self) -> JsValue {
+		let result: Vec<PieceRO> = self.0.pieces.iter().map(|x| PieceRO::new(x)).collect();
+		to_value(&result).unwrap()
 	}
 	pub fn select(&self, arg0: JsValue) -> JsValue {
 		let arg0: [f64; 4] = from_value(arg0).unwrap();

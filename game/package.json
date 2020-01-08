@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "@rollup/plugin-wasm": "^3.0.0",
+    "parcel-bundler": "^1.12.4",
+    "rollup": "^1.29.0"
+  },
+  "scripts": {
+    "build": "rollup -c rollup.config.js"
+  },
+  "dependencies": {
+    "rollup-plugin-rust": "^1.2.0"
+  }
+}
